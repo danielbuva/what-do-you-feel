@@ -1,17 +1,12 @@
 import { LaptopMinimalIcon, MoonIcon, SunIcon } from 'lucide-react'
-import { useState } from 'react'
 import { ThemeGroup, ThemeSelection } from './theme-selector'
 
 export default function ThemeToggle() {
-	const [value, setValue] = useState(localStorage.getItem('theme'))
 	return (
 		<ThemeGroup
 			defaultChecked={true}
-			defaultValue={value ?? 'sys'}
-			onValueChange={(value) => {
-				setValue(value)
-				setTheme(value)
-			}}
+			defaultValue={localStorage.getItem('theme') ?? 'sys'}
+			onValueChange={(theme) => setTheme(theme)}
 			variant="outline"
 		>
 			<ThemeSelection value="light">

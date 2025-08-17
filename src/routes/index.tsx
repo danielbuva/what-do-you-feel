@@ -1,4 +1,3 @@
-import ThemeToggle from '@/components/ui/ThemeToggle'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
