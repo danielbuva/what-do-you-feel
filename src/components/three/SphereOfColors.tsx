@@ -2,16 +2,20 @@
 import { shaderMaterial } from '@react-three/drei'
 import { type ThreeElement, extend } from '@react-three/fiber'
 import { useFrame } from '@react-three/fiber'
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	type RefObject,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import {
 	Color,
 	type InstancedMesh,
 	MathUtils,
 	Object3D,
-	Raycaster,
 	type ShaderMaterial,
 	SphereGeometry,
-	Vector2,
 	Vector3,
 } from 'three'
 
@@ -125,7 +129,12 @@ interface BreathingMaterialUniforms extends ShaderMaterial {
 	}
 }
 
-export default function SphereOfColors({ count = 2500, radius = 3 }) {
+const COUNT = 2500
+const RADIUS = 3
+
+export default function SphereOfColors({
+	isDragging,
+}: { isDragging: RefObject<boolean> }) {
 	const [hoveredId, setHoveredId] = useState(-1)
 	const [selectedId, setSelectedId] = useState(-1)
 	const meshRef = useRef<InstancedMesh | null>(null)
@@ -134,18 +143,18 @@ export default function SphereOfColors({ count = 2500, radius = 3 }) {
 
 	const { positions, colors } = useMemo(() => {
 		const positions: Vector3[] = []
-		const colors = new Float32Array(count * 3)
+		const colors = new Float32Array(COUNT * 3)
 		const color = new Color()
-		for (let i = 0; i < count; i++) {
-			const phi = Math.acos(1 - (2 * (i + 0.5)) / count)
+		for (let i = 0; i < COUNT; i++) {
+			const phi = Math.acos(1 - (2 * (i + 0.5)) / COUNT)
 			const theta = goldenAngle * i
-			const x = radius * Math.cos(theta) * Math.sin(phi)
-			const y = radius * Math.sin(theta) * Math.sin(phi)
-			const z = radius * Math.cos(phi)
+			const x = RADIUS * Math.cos(theta) * Math.sin(phi)
+			const y = RADIUS * Math.sin(theta) * Math.sin(phi)
+			const z = RADIUS * Math.cos(phi)
 			positions.push(new Vector3(x, y, z))
 
 			const h = theta / twoPI
-			const l = MathUtils.lerp(0.2, 0.69, i / count)
+			const l = MathUtils.lerp(0.2, 0.69, i / COUNT)
 			const c = new Color().setHSL(h, 0.9, l)
 			// optional boost
 			const rgb = [c.r, c.g, c.b]
@@ -159,7 +168,7 @@ export default function SphereOfColors({ count = 2500, radius = 3 }) {
 			colors[i * 3 + 2] = color.b
 		}
 		return { positions, colors }
-	}, [count, radius])
+	}, [])
 
 	// geometry memoized (do not recreate each render)
 	const sphereGeo = useMemo(() => new SphereGeometry(0.06, 6, 6), [])
@@ -175,24 +184,7 @@ export default function SphereOfColors({ count = 2500, radius = 3 }) {
 		meshRef.current.instanceMatrix.needsUpdate = true
 	}, [positions, dummy])
 
-	let prevHover = false
-	let lastChange = 0
-	const raycaster = new Raycaster()
-
-	useFrame(({ camera, clock, pointer }) => {
-		if (meshRef.current) {
-			raycaster.setFromCamera(pointer, camera)
-			const intersects = raycaster.intersectObject(meshRef.current)
-			const isHover = intersects.length > 0
-
-			const now = clock.elapsedTime
-			if (isHover !== prevHover && now - lastChange > 0.69) {
-				// 50ms threshold
-				document.body.style.cursor = isHover ? 'pointer' : 'auto'
-				prevHover = isHover
-				lastChange = now
-			}
-		}
+	useFrame(({ clock }) => {
 		// update shader uniforms every frame
 		if (!matRef.current) return
 		matRef.current.uniforms.uTime.value = clock.getElapsedTime()
@@ -200,7 +192,7 @@ export default function SphereOfColors({ count = 2500, radius = 3 }) {
 		matRef.current.uniforms.uSelected.value = selectedId
 	})
 
-	const colorCache = useRef<(Color | null)[]>(Array(count).fill(null))
+	const colorCache = useRef<(Color | null)[]>(Array(COUNT).fill(null))
 
 	const getColorAt = (i: number) => {
 		let c = colorCache.current[i]
@@ -214,18 +206,43 @@ export default function SphereOfColors({ count = 2500, radius = 3 }) {
 	return (
 		<instancedMesh
 			ref={meshRef}
-			args={[sphereGeo, undefined, count]}
+			args={[sphereGeo, undefined, COUNT]}
 			rotation={[-0.8, 0.6, 0.05]}
-			onPointerMove={(e) => {
+			onPointerEnter={(e) => {
+				e.stopPropagation()
+
 				const id = typeof e.instanceId === 'number' ? e.instanceId : -1
 				setHoveredId(id)
-				e.stopPropagation()
+
+				if (isDragging.current) return
+				document.body.style.cursor = 'pointer'
 			}}
-			onPointerOut={() => setHoveredId(-1)}
+			onPointerMove={(e) => {
+				e.stopPropagation()
+
+				const id = typeof e.instanceId === 'number' ? e.instanceId : -1
+				setHoveredId(id)
+
+				if (isDragging.current) return
+				document.body.style.cursor = 'pointer'
+			}}
+			onPointerOut={(e) => {
+				e.stopPropagation()
+
+				if (isDragging.current) return
+				setHoveredId(() => {
+					document.body.style.cursor = 'auto'
+					return -1
+				})
+			}}
 			onClick={(e) => {
+				if (isDragging.current) return
+				e.stopPropagation()
+
+				document.body.style.cursor = 'pointer'
 				const id = typeof e.instanceId === 'number' ? e.instanceId : -1
 				setSelectedId(id)
-				e.stopPropagation()
+
 				if (id >= 0) {
 					const color = getColorAt(id)
 					console.log('picked color', color.getStyle())

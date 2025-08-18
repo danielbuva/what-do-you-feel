@@ -1,5 +1,5 @@
 import { tunnel } from '@/lib/utils'
-import { CameraShake, OrbitControls, Preload } from '@react-three/drei'
+import { CameraShake, Preload } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 
 export default function Scene({ ...props }) {
@@ -15,14 +15,7 @@ export default function Scene({ ...props }) {
 			<tunnel.Out />
 			<Preload all />
 
-			<OrbitControls
-				makeDefault
-				minDistance={5}
-				maxDistance={69}
-				zoomSpeed={0.69}
-				enablePan={false}
-			/>
-			<CameraShake
+			{/* <CameraShake
 				// i think:
 				maxYaw={0.05} // vertial axis rotation
 				maxPitch={0.05} // side to side axis/ lateral/ up and down
@@ -32,7 +25,7 @@ export default function Scene({ ...props }) {
 				rollFrequency={0.05}
 				intensity={0.8}
 				decayRate={0.69}
-			/>
+			/> */}
 		</Canvas>
 	)
 }
