@@ -1,3 +1,4 @@
+import Experience from '@/components/three/Experience'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
@@ -6,10 +7,9 @@ export const Route = createFileRoute('/')({
 
 function App() {
 	return (
-		<div className="text-center">
-			<header className="min-h-screen flex flex-col items-center justify-center text-[calc(10px+2vmin)]">
-				hi
-			</header>
-		</div>
+		<>
+			{/* <header className="min-h-screen flex flex-col items-center justify-center" /> */}
+			<Experience />
+		</>
 	)
 }
