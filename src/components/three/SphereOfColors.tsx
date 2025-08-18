@@ -207,7 +207,7 @@ export default function SphereOfColors({
 		<instancedMesh
 			ref={meshRef}
 			args={[sphereGeo, undefined, COUNT]}
-			rotation={[-0.8, 0.6, 0.05]}
+			rotation={[-0.7, -2.5, 2]}
 			onPointerEnter={(e) => {
 				e.stopPropagation()
 
