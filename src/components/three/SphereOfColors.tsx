@@ -154,13 +154,13 @@ export default function SphereOfColors({
 			positions.push(new Vector3(x, y, z))
 
 			const h = theta / twoPI
-			const l = MathUtils.lerp(0.2, 0.69, i / COUNT)
-			const c = new Color().setHSL(h, 0.9, l)
+			const l = MathUtils.lerp(0.69, 0.169, i / 1.69 / COUNT)
+			color.setHSL(h, 0.9, l)
 			// optional boost
-			const rgb = [c.r, c.g, c.b]
-			const idx = rgb.indexOf(Math.max(...rgb))
-			rgb[idx] = Math.min(1, rgb[idx] * 1.6)
-			color.setRGB(rgb[0], rgb[1], rgb[2])
+			// const rgb = [c.r, c.g, c.b]
+			// const idx = rgb.indexOf(Math.max(...rgb))
+			// rgb[idx] = Math.min(1, rgb[idx] * 1.6)
+			// color.setRGB(rgb[0], rgb[1], rgb[2])
 
 			// write straight into the flat buffer (one pass)
 			colors[i * 3 + 0] = color.r
