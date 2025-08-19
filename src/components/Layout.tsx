@@ -16,15 +16,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
 				width: ' 100%',
 			}}
 		>
-			<main
-				className="flex min-h-screen select-none flex-col justify-between"
-				// onPointerDown={() => {
-				// 	document.body.style.cursor = 'grab'
-				// }}
-				// onPointerUp={() => {
-				// 	document.body.style.cursor = 'auto'
-				// }}
-			>
+			<main className="flex min-h-screen select-none flex-col justify-between">
 				<Header />
 				{children}
 			</main>
