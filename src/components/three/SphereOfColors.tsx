@@ -36,10 +36,11 @@ for (let i = 0; i < COUNT; i++) {
 	color.setHSL(h, 0.9, l)
 
 	const threeI = i * 3
-	colors[threeI + 0] = color.r
+	colors[threeI] = color.r
 	colors[threeI + 1] = color.g
 	colors[threeI + 2] = color.b
 }
+// to fix hot reload move dummy into component
 const dummy = new Object3D()
 const sphereGeo = new SphereGeometry(0.06, 6, 6)
 
