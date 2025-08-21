@@ -7,3 +7,4 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const tunnel = tunnelRat()
+export const uiTunnel = tunnelRat()

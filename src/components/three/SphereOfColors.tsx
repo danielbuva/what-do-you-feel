@@ -4,6 +4,8 @@ import {
 } from '@/lib/three/BreathingMaterial'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 
+import { uiTunnel } from '@/lib/utils'
+
 import { OrbMaterial, type OrbMaterialUniforms } from '@/lib/three/Orb'
 import { extend, useFrame, useThree } from '@react-three/fiber'
 import gsap from 'gsap'
@@ -24,7 +26,6 @@ import {
 	SphereGeometry,
 	Vector3,
 } from 'three'
-import ButtonTest from './ButtonTest'
 extend({ BreathingMaterial, OrbMaterial })
 
 const goldenAngle = Math.PI * (1 + Math.sqrt(5))
@@ -244,11 +245,17 @@ export default function SphereOfColors({
 					depthTest={false}
 				/>
 			</mesh>
-			<ButtonTest
-				onClick={() =>
-					handleClick(instancedMatRef.current?.uniforms.uSelected.value ?? -1)
-				}
-			/>
+			<uiTunnel.In>
+				<button
+					type="button"
+					className="cursor-pointer z-10"
+					onClick={() =>
+						handleClick(instancedMatRef.current?.uniforms.uSelected.value ?? -1)
+					}
+				>
+					okay
+				</button>
+			</uiTunnel.In>
 		</>
 	)
 }
