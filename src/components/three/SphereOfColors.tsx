@@ -57,9 +57,9 @@ for (let i = 0; i < COUNT; i++) {
 // const dummy = new Object3D()
 const sphereGeo = new SphereGeometry(0.06, 6, 6)
 
-// const getColorAt = (i: number) => {
-// 	return color.fromArray(colors, i * 3)
-// }
+const getColorAt = (i: number) => {
+	return color.fromArray(colors, i * 3)
+}
 
 export default function SphereOfColors({
 	isDragging,
@@ -74,6 +74,7 @@ export default function SphereOfColors({
 	const [orbPosition, setOrbPosition] = useState<
 		Vector3 | [x: number, y: number, z: number]
 	>([0, 0, 0])
+	const [orbColor, setOrbColor] = useState<Color | null>(null)
 	const singleOrbRef = useRef<Mesh>(null)
 	const singleOrbMatRef = useRef<OrbMaterialUniforms>(null)
 
@@ -112,7 +113,7 @@ export default function SphereOfColors({
 		// decompose worldMatrix into position/quaternion/scale on dummy
 		worldMat.decompose(dummy.position, dummy.quaternion, dummy.scale)
 
-		// const color = getColorAt(id)
+		setOrbColor(getColorAt(id))
 		const target = dummy.position.clone()
 		setOrbPosition(target)
 
@@ -234,9 +235,14 @@ export default function SphereOfColors({
 			<mesh
 				ref={singleOrbRef}
 				position={orbPosition}
-				geometry={new SphereGeometry(0.06, 16, 16)}
+				geometry={new SphereGeometry(0.06, 8, 8)}
 			>
-				<orbMaterial ref={singleOrbMatRef} uOpacity={0.1} transparent />
+				<orbMaterial
+					ref={singleOrbMatRef}
+					uOpacity={0.1}
+					transparent
+					uColor={orbColor ?? new Color()}
+				/>
 			</mesh>
 			<ButtonTest
 				onClick={() =>
