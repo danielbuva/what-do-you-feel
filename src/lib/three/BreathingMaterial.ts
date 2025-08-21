@@ -3,7 +3,7 @@ import type { ThreeElement } from '@react-three/fiber'
 import type { ShaderMaterial } from 'three'
 
 export const BreathingMaterial = shaderMaterial(
-	{ uTime: 0, uHovered: -1, uSelected: -1 },
+	{ uTime: 0, uHovered: -1, uSelected: -1, uOpacity: 1 },
 	/* vertex */ `
     uniform float uTime;
     varying vec3 vColor;
@@ -31,11 +31,11 @@ export const BreathingMaterial = shaderMaterial(
 	/* fragment */ `
 uniform int uHovered;
 uniform int uSelected;
+uniform float uOpacity;
 varying vec3 vColor;
 varying float vInstanceID;
 varying vec3 vNormal;
 varying vec3 vViewDir;
-
 void main() {
   // ----- edge metric (0 in front-facing areas, >0 near silhouettes) -----
   float edge = 1.0 - dot(normalize(vNormal), normalize(vViewDir));
@@ -81,7 +81,7 @@ void main() {
   vec3 withOutline = mix(edgeShadedColor, outlineColor, clamp(outlineFactor, 0.0, 1.0));
 
   // final: clamp to avoid overbright artifacts
-  gl_FragColor = vec4(clamp(withOutline, 0.0, 1.0), 1.0);
+  gl_FragColor = vec4(clamp(withOutline, 0.0, 1.0), uOpacity);
 }
   `
 )
@@ -93,6 +93,7 @@ declare module '@react-three/fiber' {
 				uTime: number
 				uHovered: number
 				uSelected: number
+				uOpacity: number
 			}
 		>
 	}
@@ -103,5 +104,6 @@ export interface BreathingMaterialUniforms extends ShaderMaterial {
 		uTime: { value: number }
 		uHovered: { value: number }
 		uSelected: { value: number }
+		uOpacity: { value: number }
 	}
 }

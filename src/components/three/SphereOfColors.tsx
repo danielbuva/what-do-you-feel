@@ -4,20 +4,28 @@ import {
 } from '@/lib/three/BreathingMaterial'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 
+import { OrbMaterial, type OrbMaterialUniforms } from '@/lib/three/Orb'
 import { extend, useFrame, useThree } from '@react-three/fiber'
 import gsap from 'gsap'
-import { type RefObject, useLayoutEffect, useMemo, useRef } from 'react'
+import {
+	type RefObject,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import {
 	Color,
 	type InstancedMesh,
 	MathUtils,
 	Matrix4,
+	type Mesh,
 	Object3D,
 	SphereGeometry,
 	Vector3,
 } from 'three'
 import ButtonTest from './ButtonTest'
-extend({ BreathingMaterial })
+extend({ BreathingMaterial, OrbMaterial })
 
 const goldenAngle = Math.PI * (1 + Math.sqrt(5))
 const twoPI = 2 * Math.PI
@@ -61,33 +69,36 @@ export default function SphereOfColors({
 	orbitControlsRef: RefObject<OrbitControlsImpl | null>
 }) {
 	const dummy = useMemo(() => new Object3D(), [])
-	const meshRef = useRef<InstancedMesh | null>(null)
+	const instancedMeshRef = useRef<InstancedMesh | null>(null)
 
-	// const [focusLight, setFocusLight] = useState<JSX.Element | null>()
-	// const focusRef = useRef<Mesh>(null)
+	const [orbPosition, setOrbPosition] = useState<
+		Vector3 | [x: number, y: number, z: number]
+	>([0, 0, 0])
+	const singleOrbRef = useRef<Mesh>(null)
+	const singleOrbMatRef = useRef<OrbMaterialUniforms>(null)
 
 	useLayoutEffect(() => {
-		if (!meshRef.current) return
+		if (!instancedMeshRef.current) return
 		for (let i = 0; i < positions.length; i++) {
 			dummy.position.copy(positions[i])
 			dummy.updateMatrix()
-			meshRef.current.setMatrixAt(i, dummy.matrix)
+			instancedMeshRef.current.setMatrixAt(i, dummy.matrix)
 		}
-		meshRef.current.instanceMatrix.needsUpdate = true
+		instancedMeshRef.current.instanceMatrix.needsUpdate = true
 	}, [dummy])
 
-	const shaderRef = useRef<BreathingMaterialUniforms>(null)
+	const instancedMatRef = useRef<BreathingMaterialUniforms>(null)
 	useFrame(({ clock }) => {
 		// update shader uniforms every frame
-		if (!shaderRef.current) return
-		shaderRef.current.uniforms.uTime.value = clock.getElapsedTime()
+		if (!instancedMatRef.current) return
+		instancedMatRef.current.uniforms.uTime.value = clock.getElapsedTime()
 	})
 
 	const { camera } = useThree()
-	const worldMat = new Matrix4()
+	const worldMat = useMemo(() => new Matrix4(), [])
 	const handleClick = (id: number) => {
 		if (id < 0) return
-		const mesh = meshRef.current
+		const mesh = instancedMeshRef.current
 		if (!mesh) return
 		// make sure the mesh world matrix is current
 		mesh.updateMatrixWorld(true)
@@ -101,7 +112,9 @@ export default function SphereOfColors({
 		// decompose worldMatrix into position/quaternion/scale on dummy
 		worldMat.decompose(dummy.position, dummy.quaternion, dummy.scale)
 
+		// const color = getColorAt(id)
 		const target = dummy.position.clone()
+		setOrbPosition(target)
 
 		// compute a camera position offset along the current camera->target direction
 		// keep same direction as existing camera relative to target
@@ -129,6 +142,31 @@ export default function SphereOfColors({
 				}
 			},
 		})
+		if (instancedMatRef.current && instancedMeshRef.current) {
+			gsap
+				.timeline()
+				.to(instancedMatRef.current.uniforms.uOpacity, {
+					value: 0,
+					duration: 1.0,
+					delay: 1.0,
+					ease: 'power2.inOut',
+				})
+				.to(instancedMeshRef.current.scale, {
+					x: 0,
+					y: 0,
+					z: 0,
+					duration: 1.0,
+					ease: 'power2.inOut',
+				})
+		}
+		if (singleOrbMatRef.current) {
+			gsap.to(singleOrbMatRef.current.uniforms.uOpacity, {
+				value: 1,
+				duration: 1.0,
+				delay: 1.0,
+				ease: 'power2.inOut',
+			})
+		}
 
 		// animate controls.target if you have OrbitControls
 		if (orbitControlsRef.current) {
@@ -145,48 +183,25 @@ export default function SphereOfColors({
 		}
 	}
 
-	// Get color
-	// const pickedColor = getColorAt(id)
-
-	// Create a focus mesh
-	// const focusMesh = (
-	// 	<mesh
-	// 		ref={focusRef}
-	// 		position={[dummy.position.x, dummy.position.y, dummy.position.z]}
-	// 		geometry={new SphereGeometry(0.06, 16, 16)}
-	// 	>
-	// 		<meshStandardMaterial color={pickedColor} />
-	// 	</mesh>
-	// )
-	// setFocusLight(focusMesh)
-	// console.log({
-	// 	col: pickedColor,
-	// 	act: focusMesh.props.children.props.color,
-	// 	sameCol:
-	// 		pickedColor.r === focusMesh.props.children.props.color.r &&
-	// 		pickedColor.g === focusMesh.props.children.props.color.g &&
-	// 		pickedColor.b === focusMesh.props.children.props.color.b,
-	// })
-
 	return (
 		<>
 			<instancedMesh
-				ref={meshRef}
+				ref={instancedMeshRef}
 				args={[sphereGeo, undefined, COUNT]}
 				rotation={[-0.7, -2.5, 2]}
 				onPointerEnter={(e) => {
 					e.stopPropagation()
 					const id = typeof e.instanceId === 'number' ? e.instanceId : -1
-					if (!shaderRef.current) return
-					shaderRef.current.uniforms.uHovered.value = id
+					if (!instancedMatRef.current) return
+					instancedMatRef.current.uniforms.uHovered.value = id
 					if (isDragging.current) return
 					document.body.style.cursor = 'pointer'
 				}}
 				onPointerMove={(e) => {
 					e.stopPropagation()
 					const id = typeof e.instanceId === 'number' ? e.instanceId : -1
-					if (!shaderRef.current) return
-					shaderRef.current.uniforms.uHovered.value = id
+					if (!instancedMatRef.current) return
+					instancedMatRef.current.uniforms.uHovered.value = id
 					if (isDragging.current) return
 					document.body.style.cursor = 'pointer'
 				}}
@@ -194,30 +209,38 @@ export default function SphereOfColors({
 					if (isDragging.current) return
 					e.stopPropagation()
 					document.body.style.cursor = 'auto'
-					if (!shaderRef.current) return
-					shaderRef.current.uniforms.uHovered.value = -1
+					if (!instancedMatRef.current) return
+					instancedMatRef.current.uniforms.uHovered.value = -1
 				}}
 				onClick={(e) => {
 					if (isDragging.current) return
 					e.stopPropagation()
 					document.body.style.cursor = 'pointer'
 					const id = typeof e.instanceId === 'number' ? e.instanceId : -1
-					if (shaderRef.current) {
-						shaderRef.current.uniforms.uSelected.value = id
+					if (instancedMatRef.current) {
+						instancedMatRef.current.uniforms.uSelected.value = id
 					}
-					// if (id >= 0) {
-					// 	const color = getColorAt(id)
-					// 	console.log('picked color', color.getStyle())
-					// }
 				}}
 			>
 				<instancedBufferAttribute attach="instanceColor" args={[colors, 3]} />
-				<breathingMaterial ref={shaderRef} attach="material" />
+				<breathingMaterial
+					ref={instancedMatRef}
+					attach="material"
+					uOpacity={1.0}
+					depthWrite={false}
+					transparent
+				/>
 			</instancedMesh>
-			{/* {focusLight} */}
+			<mesh
+				ref={singleOrbRef}
+				position={orbPosition}
+				geometry={new SphereGeometry(0.06, 16, 16)}
+			>
+				<orbMaterial ref={singleOrbMatRef} uOpacity={0.1} transparent />
+			</mesh>
 			<ButtonTest
 				onClick={() =>
-					handleClick(shaderRef.current?.uniforms.uSelected.value ?? -1)
+					handleClick(instancedMatRef.current?.uniforms.uSelected.value ?? -1)
 				}
 			/>
 		</>
