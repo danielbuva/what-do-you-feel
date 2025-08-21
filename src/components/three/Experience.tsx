@@ -1,16 +1,19 @@
 import SphereOfColors from '@/components/three/SphereOfColors'
-import { CameraShake, OrbitControls, Stars } from '@react-three/drei'
+import { CameraShake, OrbitControls } from '@react-three/drei'
 import { useRef } from 'react'
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { View } from './View'
 
 export default function Experience() {
 	const isDragging = useRef(false)
+	const orbitControlsRef = useRef<OrbitControlsImpl | null>(null)
 
 	return (
 		<View>
 			<OrbitControls
+				ref={orbitControlsRef}
 				makeDefault
-				minDistance={5}
+				minDistance={0.5}
 				maxDistance={69}
 				zoomSpeed={0.69}
 				enablePan={false}
@@ -35,9 +38,10 @@ export default function Experience() {
 				intensity={0.8}
 				decayRate={0.69}
 			/>
-			<ambientLight />
-			<SphereOfColors isDragging={isDragging} />
-			<Stars count={100} />
+			<SphereOfColors
+				isDragging={isDragging}
+				orbitControlsRef={orbitControlsRef}
+			/>
 		</View>
 	)
 }
