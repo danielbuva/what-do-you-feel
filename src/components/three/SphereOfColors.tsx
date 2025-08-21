@@ -228,7 +228,6 @@ export default function SphereOfColors({
 					ref={instancedMatRef}
 					attach="material"
 					uOpacity={1.0}
-					depthWrite={false}
 					transparent
 				/>
 			</instancedMesh>
@@ -242,6 +241,7 @@ export default function SphereOfColors({
 					uOpacity={0.1}
 					transparent
 					uColor={orbColor ?? new Color()}
+					depthTest={false}
 				/>
 			</mesh>
 			<ButtonTest

@@ -29,11 +29,11 @@ export default function ThreeButtonAttached({
 	}, [])
 
 	return (
-		<Hud>
+		<Hud renderPriority={1}>
 			<PerspectiveCamera makeDefault position={[-2.2, 1.25, 3]} />
 			<mesh
 				geometry={geometry}
-				position={[0.8, -0.8, -2]} // relative to camera
+				position={[1.5, -0.8, -2]} // relative to camera
 				scale={0.3}
 				onPointerEnter={() => {
 					document.body.style.cursor = 'pointer'
@@ -43,7 +43,7 @@ export default function ThreeButtonAttached({
 				}}
 				onClick={onClick}
 			>
-				<meshBasicMaterial color="lime" />
+				<meshBasicMaterial color="lime" depthWrite={false} depthTest={false} />
 			</mesh>
 		</Hud>
 	)
