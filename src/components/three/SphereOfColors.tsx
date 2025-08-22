@@ -126,8 +126,12 @@ export default function SphereOfColors({
 	const worldMat = useMemo(() => new Matrix4(), [])
 	const handleClick = (id: number) => {
 		if (id < 0) return
+		if (!instancedMeshRef.current) return
+		if (!trackballControlsRef.current) return
+		if (!instancedMatRef.current) return
+		if (!orbMatRef.current) return
+
 		const mesh = instancedMeshRef.current
-		if (!mesh) return
 		// make sure the mesh world matrix is current
 		mesh.updateMatrixWorld(true)
 
@@ -140,9 +144,9 @@ export default function SphereOfColors({
 		// decompose worldMatrix into position/quaternion/scale on dummy
 		worldMat.decompose(dummy.position, dummy.quaternion, dummy.scale)
 
-		setOrbColor(getColorAt(id))
 		const target = dummy.position.clone()
 		setOrbPosition(target)
+		setOrbColor(getColorAt(id))
 
 		// compute a camera position offset along the current camera->target direction
 		// keep same direction as existing camera relative to target
@@ -150,66 +154,56 @@ export default function SphereOfColors({
 		const newCamPos = target.clone().add(camDir.multiplyScalar(0.5)) // distance
 
 		// optionally disable controls during animation
-		if (trackballControlsRef?.current)
-			trackballControlsRef.current.enabled = false
+		const controls = trackballControlsRef.current
+		controls.enabled = false
 
 		// animate camera position and make it look at target each frame
 		gsap.killTweensOf(camera.position)
-		gsap.to(camera.position, {
-			x: newCamPos.x,
-			y: newCamPos.y,
-			z: newCamPos.z,
+		gsap
+			.timeline()
+			.to(camera.position, {
+				x: newCamPos.x,
+				y: newCamPos.y,
+				z: newCamPos.z,
+				duration: 1.0,
+				ease: 'power2.inOut',
+				onUpdate: () => camera.lookAt(target.x, target.y, target.z),
+				onComplete: () => {
+					// re-enable controls after small delay so it feels smooth
+					controls.target.set(target.x, target.y, target.z)
+					controls.update()
+					controls.enabled = true
+				},
+			}) // hide instances
+			.to(instancedMatRef.current.uniforms.uOpacity, {
+				value: 0,
+				duration: 1.0,
+				ease: 'power2.inOut',
+			}) // take it away using scale
+			.to(mesh.scale, {
+				x: 0,
+				y: 0,
+				z: 0,
+				duration: 1.0,
+				ease: 'power2.inOut',
+			})
+		// show replacement mesh
+		gsap.to(orbMatRef.current.uniforms.uOpacity, {
+			value: 1,
+			duration: 1.0,
+			delay: 1.0,
+			ease: 'power2.inOut',
+		})
+		// animate controls.target if you have OrbitControls
+		gsap.killTweensOf(controls.target)
+		gsap.to(controls.target, {
+			x: target.x,
+			y: target.y,
+			z: target.z,
 			duration: 1.0,
 			ease: 'power2.inOut',
-			onUpdate: () => camera.lookAt(target.x, target.y, target.z),
-			onComplete: () => {
-				// re-enable controls after small delay so it feels smooth
-				if (trackballControlsRef?.current) {
-					trackballControlsRef.current.target.set(target.x, target.y, target.z)
-					trackballControlsRef.current.update()
-					trackballControlsRef.current.enabled = true
-				}
-			},
+			onUpdate: () => controls.update(),
 		})
-		if (instancedMatRef.current && instancedMeshRef.current) {
-			gsap
-				.timeline()
-				.to(instancedMatRef.current.uniforms.uOpacity, {
-					value: 0,
-					duration: 1.0,
-					delay: 1.0,
-					ease: 'power2.inOut',
-				})
-				.to(instancedMeshRef.current.scale, {
-					x: 0,
-					y: 0,
-					z: 0,
-					duration: 1.0,
-					ease: 'power2.inOut',
-				})
-		}
-		if (orbMatRef.current) {
-			gsap.to(orbMatRef.current.uniforms.uOpacity, {
-				value: 1,
-				duration: 1.0,
-				delay: 1.0,
-				ease: 'power2.inOut',
-			})
-		}
-
-		// animate controls.target if you have OrbitControls
-		if (trackballControlsRef.current) {
-			const controls = trackballControlsRef.current
-			gsap.killTweensOf(trackballControlsRef.current.target)
-			gsap.to(trackballControlsRef.current.target, {
-				x: target.x,
-				y: target.y,
-				z: target.z,
-				duration: 1.0,
-				ease: 'power2.inOut',
-				onUpdate: () => controls.update(),
-			})
-		}
 	}
 
 	return (
