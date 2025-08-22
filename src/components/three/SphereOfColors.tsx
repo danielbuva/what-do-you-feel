@@ -26,6 +26,7 @@ import {
 	SphereGeometry,
 	Vector3,
 } from 'three'
+import { Slider } from '../ui/slider'
 extend({ BreathingMaterial, OrbMaterial })
 
 const goldenAngle = Math.PI * (1 + Math.sqrt(5))
@@ -92,6 +93,9 @@ export default function SphereOfColors({
 	const instancedMatRef = useRef<BreathingMaterialUniforms>(null)
 	useFrame(({ clock }) => {
 		// update shader uniforms every frame
+		if (singleOrbMatRef.current) {
+			singleOrbMatRef.current.uniforms.uTime.value = clock.getElapsedTime()
+		}
 		if (!instancedMatRef.current) return
 		instancedMatRef.current.uniforms.uTime.value = clock.getElapsedTime()
 	})
@@ -235,7 +239,7 @@ export default function SphereOfColors({
 			<mesh
 				ref={singleOrbRef}
 				position={orbPosition}
-				geometry={new SphereGeometry(0.06, 8, 8)}
+				geometry={new SphereGeometry(0.06, 64)}
 			>
 				<orbMaterial
 					ref={singleOrbMatRef}
@@ -243,18 +247,37 @@ export default function SphereOfColors({
 					transparent
 					uColor={orbColor ?? new Color()}
 					depthTest={false}
+					uNoise={0}
+					uFuzziness={0}
 				/>
 			</mesh>
 			<uiTunnel.In>
-				<button
-					type="button"
-					className="cursor-pointer z-10"
-					onClick={() =>
-						handleClick(instancedMatRef.current?.uniforms.uSelected.value ?? -1)
-					}
-				>
-					okay
-				</button>
+				<div className="z-10">
+					<button
+						type="button"
+						className="cursor-pointer"
+						onClick={() =>
+							handleClick(
+								instancedMatRef.current?.uniforms.uSelected.value ?? -1
+							)
+						}
+					>
+						okay
+					</button>
+					<div>
+						<Slider
+							defaultValue={[0]}
+							min={0}
+							max={1}
+							step={0.01}
+							onValueChange={(val) => {
+								if (singleOrbMatRef.current) {
+									singleOrbMatRef.current.uniforms.uNoise.value = val[0]
+								}
+							}}
+						/>
+					</div>
+				</div>
 			</uiTunnel.In>
 		</>
 	)
