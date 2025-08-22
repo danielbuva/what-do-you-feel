@@ -77,8 +77,8 @@ export default function SphereOfColors({
 		Vector3 | [x: number, y: number, z: number]
 	>([0, 0, 0])
 	const [orbColor, setOrbColor] = useState<Color | null>(null)
-	const singleOrbRef = useRef<Mesh>(null)
-	const singleOrbMatRef = useRef<OrbMaterialUniforms>(null)
+	const orbRef = useRef<Mesh>(null)
+	const orbMatRef = useRef<OrbMaterialUniforms>(null)
 
 	useLayoutEffect(() => {
 		if (!instancedMeshRef.current) return
@@ -92,12 +92,12 @@ export default function SphereOfColors({
 
 	const instancedMatRef = useRef<BreathingMaterialUniforms>(null)
 	// const z = 0
-	useFrame(({ camera, clock, pointer }) => {
+	useFrame(({ camera, pointer }, delta) => {
 		// update shader uniforms every frame
-		if (singleOrbMatRef.current) {
-			singleOrbMatRef.current.uniforms.uTime.value = clock.getElapsedTime()
+		if (orbMatRef.current) {
+			orbMatRef.current.uniforms.uTime.value += delta
 		}
-		// if (singleOrbRef.current && ready.current) {
+		// if (orbRef.current && ready.current) {
 		// 	// Convert pointer to world space
 		// 	const vector = new Vector3(pointer.x, pointer.y, 0.5)
 		// 	vector.unproject(camera)
@@ -110,16 +110,16 @@ export default function SphereOfColors({
 		// 		.add(dir.multiplyScalar(distanceToPlane))
 
 		// 	// Smoothly follow
-		// 	singleOrbRef.current.position.lerp(pos, 0.2)
+		// 	orbRef.current.position.lerp(pos, 0.2)
 
 		// 	// Scale based on distance
-		// 	const distance = singleOrbRef.current.position.distanceTo(camera.position)
+		// 	const distance = orbRef.current.position.distanceTo(camera.position)
 		// 	const scaleFactor = Math.min(distance, 1) // clamp between 0.2 and 1
-		// 	singleOrbRef.current.scale.setScalar(scaleFactor)
+		// 	orbRef.current.scale.setScalar(scaleFactor)
 		// }
 
 		if (!instancedMatRef.current) return
-		instancedMatRef.current.uniforms.uTime.value = clock.getElapsedTime()
+		instancedMatRef.current.uniforms.uTime.value += delta
 	})
 
 	const { camera } = useThree()
@@ -188,8 +188,8 @@ export default function SphereOfColors({
 					ease: 'power2.inOut',
 				})
 		}
-		if (singleOrbMatRef.current) {
-			gsap.to(singleOrbMatRef.current.uniforms.uOpacity, {
+		if (orbMatRef.current) {
+			gsap.to(orbMatRef.current.uniforms.uOpacity, {
 				value: 1,
 				duration: 1.0,
 				delay: 1.0,
@@ -260,18 +260,16 @@ export default function SphereOfColors({
 				/>
 			</instancedMesh>
 			<mesh
-				ref={singleOrbRef}
+				ref={orbRef}
 				position={orbPosition}
 				geometry={new SphereGeometry(0.06, 64)}
 			>
 				<orbMaterial
-					ref={singleOrbMatRef}
-					uOpacity={0.1}
+					ref={orbMatRef}
+					uOpacity={0}
 					transparent
 					uColor={orbColor ?? new Color()}
 					depthTest={false}
-					uNoise={0}
-					uFuzziness={0}
 				/>
 			</mesh>
 			<uiTunnel.In>
@@ -294,8 +292,8 @@ export default function SphereOfColors({
 							max={1}
 							step={0.01}
 							onValueChange={(val) => {
-								if (singleOrbMatRef.current) {
-									singleOrbMatRef.current.uniforms.uNoise.value = val[0]
+								if (orbMatRef.current) {
+									orbMatRef.current.uniforms.uNoise.value = val[0]
 								}
 							}}
 						/>
