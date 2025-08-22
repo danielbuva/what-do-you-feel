@@ -1,5 +1,5 @@
 import SphereOfColors from '@/components/three/SphereOfColors'
-import { CameraShake, TrackballControls } from '@react-three/drei'
+import { CameraShake, Stars, TrackballControls } from '@react-three/drei'
 import { useRef } from 'react'
 import type { TrackballControls as TrackballControlsImpl } from 'three-stdlib'
 import { View } from './View'
@@ -15,7 +15,7 @@ export default function Experience() {
 				makeDefault
 				minDistance={0.5}
 				maxDistance={69}
-				zoomSpeed={0.69}
+				zoomSpeed={1.69}
 				noPan
 				staticMoving
 				rotateSpeed={2}
@@ -44,6 +44,7 @@ export default function Experience() {
 				// orbitControlsRef={orbitControlsRef}
 				trackballControlsRef={trackballControlsRef}
 			/>
+			<Stars count={300} />
 		</View>
 	)
 }

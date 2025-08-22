@@ -1,5 +1,5 @@
 import { tunnel } from '@/lib/utils'
-import { Preload, Stars } from '@react-three/drei'
+import { Preload } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 
 export default function Scene({ ...props }) {
@@ -14,8 +14,6 @@ export default function Scene({ ...props }) {
 		>
 			<Preload all />
 			<tunnel.Out />
-			<Stars count={100} />
-			{/* <ambientLight /> */}
 		</Canvas>
 	)
 }
