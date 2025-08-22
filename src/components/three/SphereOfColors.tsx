@@ -11,6 +11,7 @@ import { extend, useFrame, useThree } from '@react-three/fiber'
 import gsap from 'gsap'
 import {
 	type RefObject,
+	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -73,12 +74,11 @@ export default function SphereOfColors({
 	const dummy = useMemo(() => new Object3D(), [])
 	const instancedMeshRef = useRef<InstancedMesh | null>(null)
 
-	const [orbPosition, setOrbPosition] = useState<
-		Vector3 | [x: number, y: number, z: number]
-	>([0, 0, 0])
+	const [orbPosition, setOrbPosition] = useState<Vector3>(new Vector3())
 	const [orbColor, setOrbColor] = useState<Color | null>(null)
 	const orbRef = useRef<Mesh>(null)
 	const orbMatRef = useRef<OrbMaterialUniforms>(null)
+	const optionsRef = useRef<HTMLDivElement>(null)
 
 	useLayoutEffect(() => {
 		if (!instancedMeshRef.current) return
@@ -92,7 +92,7 @@ export default function SphereOfColors({
 
 	const instancedMatRef = useRef<BreathingMaterialUniforms>(null)
 	// const z = 0
-	useFrame(({ camera, pointer }, delta) => {
+	useFrame((_, delta) => {
 		// update shader uniforms every frame
 		if (orbMatRef.current) {
 			orbMatRef.current.uniforms.uTime.value += delta
@@ -189,7 +189,14 @@ export default function SphereOfColors({
 			})
 		// show replacement mesh
 		gsap.to(orbMatRef.current.uniforms.uOpacity, {
-			value: 1,
+			value: 1.0,
+			duration: 1.0,
+			delay: 1.0,
+			ease: 'power2.inOut',
+		})
+		// show options
+		gsap.to(optionsRef.current, {
+			opacity: 1.0,
 			duration: 1.0,
 			delay: 1.0,
 			ease: 'power2.inOut',
@@ -267,7 +274,7 @@ export default function SphereOfColors({
 				/>
 			</mesh>
 			<uiTunnel.In>
-				<div className="z-10 border">
+				<div className="z-10 border-2 border-red-500 flex">
 					<button
 						type="button"
 						className="cursor-pointer"
@@ -279,19 +286,24 @@ export default function SphereOfColors({
 					>
 						okay
 					</button>
-					<div>
-						<Slider
-							defaultValue={[0]}
-							min={0}
-							max={1}
-							step={0.01}
-							onValueChange={(val) => {
-								if (orbMatRef.current) {
-									orbMatRef.current.uniforms.uNoise.value = val[0]
-								}
-							}}
-						/>
-					</div>
+				</div>
+				<div
+					ref={optionsRef}
+					className="border-2 border-[#c0c0c0a9] rounded-md px-4 py-2 w-52 absolute right-[5%] z-10 bottom-[15%]  h-40 flex bg-[#c0c0c02f] flex-col gap-2 opacity-0"
+				>
+					<p>noise</p>
+					<Slider
+						defaultValue={[0]}
+						min={0}
+						max={1}
+						step={0.01}
+						onValueChange={(val) => {
+							if (orbMatRef.current) {
+								orbMatRef.current.uniforms.uNoise.value = val[0]
+							}
+						}}
+						aria-label="noise"
+					/>
 				</div>
 			</uiTunnel.In>
 		</>

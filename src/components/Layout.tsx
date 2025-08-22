@@ -16,7 +16,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
 				width: ' 100%',
 			}}
 		>
-			<main className="flex min-h-screen select-none flex-col justify-between">
+			<main className="flex min-h-screen select-none flex-col justify-between relative">
 				<Header />
 				{children}
 			</main>
