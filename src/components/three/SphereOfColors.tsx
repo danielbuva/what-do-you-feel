@@ -2,7 +2,7 @@ import {
 	BreathingMaterial,
 	type BreathingMaterialUniforms,
 } from '@/lib/three/BreathingMaterial'
-import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
+import type { TrackballControls as TrackballControlsImpl } from 'three-stdlib'
 
 import { uiTunnel } from '@/lib/utils'
 
@@ -65,10 +65,10 @@ const getColorAt = (i: number) => {
 
 export default function SphereOfColors({
 	isDragging,
-	orbitControlsRef,
+	trackballControlsRef,
 }: {
 	isDragging: RefObject<boolean>
-	orbitControlsRef: RefObject<OrbitControlsImpl | null>
+	trackballControlsRef: RefObject<TrackballControlsImpl | null>
 }) {
 	const dummy = useMemo(() => new Object3D(), [])
 	const instancedMeshRef = useRef<InstancedMesh | null>(null)
@@ -91,11 +91,33 @@ export default function SphereOfColors({
 	}, [dummy])
 
 	const instancedMatRef = useRef<BreathingMaterialUniforms>(null)
-	useFrame(({ clock }) => {
+	// const z = 0
+	useFrame(({ camera, clock, pointer }) => {
 		// update shader uniforms every frame
 		if (singleOrbMatRef.current) {
 			singleOrbMatRef.current.uniforms.uTime.value = clock.getElapsedTime()
 		}
+		// if (singleOrbRef.current && ready.current) {
+		// 	// Convert pointer to world space
+		// 	const vector = new Vector3(pointer.x, pointer.y, 0.5)
+		// 	vector.unproject(camera)
+
+		// 	// Project to desired Z plane
+		// 	const dir = vector.sub(camera.position).normalize()
+		// 	const distanceToPlane = (z - camera.position.z) / dir.z
+		// 	const pos = camera.position
+		// 		.clone()
+		// 		.add(dir.multiplyScalar(distanceToPlane))
+
+		// 	// Smoothly follow
+		// 	singleOrbRef.current.position.lerp(pos, 0.2)
+
+		// 	// Scale based on distance
+		// 	const distance = singleOrbRef.current.position.distanceTo(camera.position)
+		// 	const scaleFactor = Math.min(distance, 1) // clamp between 0.2 and 1
+		// 	singleOrbRef.current.scale.setScalar(scaleFactor)
+		// }
+
 		if (!instancedMatRef.current) return
 		instancedMatRef.current.uniforms.uTime.value = clock.getElapsedTime()
 	})
@@ -128,7 +150,8 @@ export default function SphereOfColors({
 		const newCamPos = target.clone().add(camDir.multiplyScalar(0.5)) // distance
 
 		// optionally disable controls during animation
-		if (orbitControlsRef?.current) orbitControlsRef.current.enabled = false
+		if (trackballControlsRef?.current)
+			trackballControlsRef.current.enabled = false
 
 		// animate camera position and make it look at target each frame
 		gsap.killTweensOf(camera.position)
@@ -141,10 +164,10 @@ export default function SphereOfColors({
 			onUpdate: () => camera.lookAt(target.x, target.y, target.z),
 			onComplete: () => {
 				// re-enable controls after small delay so it feels smooth
-				if (orbitControlsRef?.current) {
-					orbitControlsRef.current.target.set(target.x, target.y, target.z)
-					orbitControlsRef.current.update()
-					orbitControlsRef.current.enabled = true
+				if (trackballControlsRef?.current) {
+					trackballControlsRef.current.target.set(target.x, target.y, target.z)
+					trackballControlsRef.current.update()
+					trackballControlsRef.current.enabled = true
 				}
 			},
 		})
@@ -175,10 +198,10 @@ export default function SphereOfColors({
 		}
 
 		// animate controls.target if you have OrbitControls
-		if (orbitControlsRef.current) {
-			const controls = orbitControlsRef.current
-			gsap.killTweensOf(orbitControlsRef.current.target)
-			gsap.to(orbitControlsRef.current.target, {
+		if (trackballControlsRef.current) {
+			const controls = trackballControlsRef.current
+			gsap.killTweensOf(trackballControlsRef.current.target)
+			gsap.to(trackballControlsRef.current.target, {
 				x: target.x,
 				y: target.y,
 				z: target.z,
@@ -252,7 +275,7 @@ export default function SphereOfColors({
 				/>
 			</mesh>
 			<uiTunnel.In>
-				<div className="z-10">
+				<div className="z-10 border">
 					<button
 						type="button"
 						className="cursor-pointer"

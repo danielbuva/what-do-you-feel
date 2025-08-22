@@ -1,23 +1,24 @@
 import SphereOfColors from '@/components/three/SphereOfColors'
-import { CameraShake, OrbitControls } from '@react-three/drei'
+import { CameraShake, TrackballControls } from '@react-three/drei'
 import { useRef } from 'react'
-import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
+import type { TrackballControls as TrackballControlsImpl } from 'three-stdlib'
 import { View } from './View'
 
 export default function Experience() {
 	const isDragging = useRef(false)
-	const orbitControlsRef = useRef<OrbitControlsImpl | null>(null)
+	const trackballControlsRef = useRef<TrackballControlsImpl | null>(null)
 
 	return (
 		<View>
-			<OrbitControls
-				ref={orbitControlsRef}
+			<TrackballControls
+				ref={trackballControlsRef}
 				makeDefault
 				minDistance={0.5}
 				maxDistance={69}
 				zoomSpeed={0.69}
-				enablePan={false}
-				enableDamping={false}
+				noPan
+				staticMoving
+				rotateSpeed={2}
 				onEnd={() => {
 					isDragging.current = false
 					document.body.style = 'auto'
@@ -40,7 +41,8 @@ export default function Experience() {
 			/>
 			<SphereOfColors
 				isDragging={isDragging}
-				orbitControlsRef={orbitControlsRef}
+				// orbitControlsRef={orbitControlsRef}
+				trackballControlsRef={trackballControlsRef}
 			/>
 		</View>
 	)
