@@ -212,6 +212,72 @@ export default function SphereOfColors({
 		})
 	}
 
+	// animate camera back to origin
+	// hide noise options
+	// set controls to target origin/ instanced mesh
+	// return scale of instances
+	const handleBack = () => {
+		// if (id < 0) return
+		if (!instancedMeshRef.current) return
+		if (!trackballControlsRef.current) return
+		if (!instancedMatRef.current) return
+		if (!orbMatRef.current) return
+		const instances = instancedMeshRef.current
+		// optionally disable controls during animation
+		const controls = trackballControlsRef.current
+		// controls.enabled = false
+
+		// order of anims: scale ->
+		// hide orb + show instances + zoom out +
+		// everything looks at origin/ instances
+		instances.scale.set(1, 1, 1)
+
+		gsap.killTweensOf(camera.position)
+		gsap
+			.timeline()
+			.to(instancedMatRef.current.uniforms.uOpacity, {
+				value: 1,
+				duration: 1.0,
+				ease: 'power2.inOut',
+			})
+			.to(camera.position, {
+				x: 4,
+				y: 4,
+				z: 4,
+				duration: 1.0,
+				ease: 'power2.inOut',
+				onUpdate: () =>
+					camera.lookAt(
+						instances.position.x,
+						instances.position.y,
+						instances.position.z
+					),
+			})
+
+		// hide orb
+		gsap.to(orbMatRef.current.uniforms.uOpacity, {
+			value: 0,
+			duration: 1.0,
+			ease: 'power2.inOut',
+		})
+		// hide options
+		gsap.to(optionsRef.current, {
+			opacity: 0,
+			duration: 1.0,
+			ease: 'power2.inOut',
+		})
+		// animate controls.target if you have OrbitControls
+		gsap.killTweensOf(controls.target)
+		gsap.to(controls.target, {
+			x: instances.position.x,
+			y: instances.position.y,
+			z: instances.position.z,
+			duration: 1.0,
+			ease: 'power2.inOut',
+			onUpdate: () => controls.update(),
+		})
+	}
+
 	return (
 		<>
 			<instancedMesh
@@ -274,11 +340,14 @@ export default function SphereOfColors({
 			</mesh>
 			<uiTunnel.In>
 				<SceneOptions
-					confirm={[
-						() =>
-							handleClick(
-								instancedMatRef.current?.uniforms.uSelected.value ?? -1
-							),
+					scene={[
+						{
+							confirm: () =>
+								handleClick(
+									instancedMatRef.current?.uniforms.uSelected.value ?? -1
+								),
+							back: handleBack,
+						},
 					]}
 					orbMatRef={orbMatRef}
 					optionsRef={optionsRef}

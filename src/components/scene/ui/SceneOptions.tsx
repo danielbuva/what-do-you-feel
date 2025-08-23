@@ -1,29 +1,42 @@
 import { Slider } from '@/components/ui/slider'
 import type { OrbMaterialUniforms } from '@/lib/three/Orb'
+import { cn } from '@/lib/utils'
 import { type RefObject, useRef } from 'react'
 
 export default function SceneOptions({
-	confirm,
+	scene,
 	optionsRef,
 	orbMatRef,
 }: {
-	confirm: (() => void)[]
+	scene: { confirm: () => void; back: () => void }[]
 	optionsRef: RefObject<HTMLDivElement | null>
 	orbMatRef: RefObject<OrbMaterialUniforms | null>
 }) {
 	const sceneIndex = useRef(0)
 	return (
 		<>
-			<div className="z-10 border-2 border-red-500 flex">
+			<div className="z-10 flex justify-between p-10">
+				<button
+					className={cn('cursor-pointer opacity-0', {
+						'opacity-100': sceneIndex.current > 0,
+					})}
+					type="button"
+					onClick={() => {
+						scene[sceneIndex.current - 1].back()
+						sceneIndex.current--
+					}}
+				>
+					back
+				</button>
 				<button
 					type="button"
 					className="cursor-pointer"
 					onClick={() => {
-						confirm[sceneIndex.current]()
+						scene[sceneIndex.current].confirm()
 						sceneIndex.current++
 					}}
 				>
-					okay
+					continue
 				</button>
 			</div>
 			<div
