@@ -1,4 +1,4 @@
-import Experience from '@/components/three/Experience'
+import Experience from '@/components/scene/Experience'
 import { uiTunnel } from '@/lib/utils'
 import { createFileRoute } from '@tanstack/react-router'
 

@@ -1,4 +1,4 @@
-import SphereOfColors from '@/components/three/SphereOfColors'
+import SphereOfColors from '@/components/scene/SphereOfColors'
 import { CameraShake, Stars, TrackballControls } from '@react-three/drei'
 import { useRef } from 'react'
 import type { TrackballControls as TrackballControlsImpl } from 'three-stdlib'

@@ -1,6 +1,6 @@
 import { type ReactNode, useRef } from 'react'
 import Header from './Header'
-import Scene from './three/Scene'
+import Scene from './scene/Scene'
 
 const Layout = ({ children }: { children: ReactNode }) => {
 	const ref = useRef(null)

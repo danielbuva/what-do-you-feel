@@ -11,7 +11,6 @@ import { extend, useFrame, useThree } from '@react-three/fiber'
 import gsap from 'gsap'
 import {
 	type RefObject,
-	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -27,7 +26,7 @@ import {
 	SphereGeometry,
 	Vector3,
 } from 'three'
-import { Slider } from '../ui/slider'
+import SceneOptions from './ui/SceneOptions'
 extend({ BreathingMaterial, OrbMaterial })
 
 const goldenAngle = Math.PI * (1 + Math.sqrt(5))
@@ -274,37 +273,16 @@ export default function SphereOfColors({
 				/>
 			</mesh>
 			<uiTunnel.In>
-				<div className="z-10 border-2 border-red-500 flex">
-					<button
-						type="button"
-						className="cursor-pointer"
-						onClick={() =>
+				<SceneOptions
+					confirm={[
+						() =>
 							handleClick(
 								instancedMatRef.current?.uniforms.uSelected.value ?? -1
-							)
-						}
-					>
-						okay
-					</button>
-				</div>
-				<div
-					ref={optionsRef}
-					className="border-2 border-[#c0c0c0a9] rounded-md px-4 py-2 w-52 absolute right-[5%] z-10 bottom-[15%]  h-40 flex bg-[#c0c0c02f] flex-col gap-2 opacity-0"
-				>
-					<p>noise</p>
-					<Slider
-						defaultValue={[0]}
-						min={0}
-						max={1}
-						step={0.01}
-						onValueChange={(val) => {
-							if (orbMatRef.current) {
-								orbMatRef.current.uniforms.uNoise.value = val[0]
-							}
-						}}
-						aria-label="noise"
-					/>
-				</div>
+							),
+					]}
+					orbMatRef={orbMatRef}
+					optionsRef={optionsRef}
+				/>
 			</uiTunnel.In>
 		</>
 	)
